@@ -4,33 +4,34 @@
 #include <signal.h>
 #include <string.h>
 
-void handler(int sig)
-{
-	printf("\nRecieved Signal : %s\n", strsignal(sig));
-	if (sig == SIGTSTP)
-	{
-		signal(SIGTSTP, SIG_DFL);
-	}
-	else if (sig == SIGCONT)
-	{
-		signal(SIGCONT, SIG_DFL);
-	}
-	signal(sig, SIG_DFL);
-	raise(sig);
+// Signal handler function
+void handler(int sig) {
+    printf("\nReceived Signal: %s\n", strsignal(sig));
+
+    // Propagate the signal to the default signal handler
+    signal(sig, SIG_DFL);
+    raise(sig);
+
+    // Reinstall custom handlers as needed
+    if (sig == SIGTSTP) {
+        signal(SIGCONT, handler);
+    } else if (sig == SIGCONT) {
+        signal(SIGTSTP, handler);
+    }
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
+    printf("Starting the program\n");
 
-	printf("Starting the program\n");
-	signal(SIGINT, handler);
-	signal(SIGTSTP, handler);
-	signal(SIGCONT, handler);
+    // Set up the signal handlers
+    signal(SIGINT, handler);
+    signal(SIGTSTP, handler);
+    signal(SIGCONT, handler);
 
-	while (1)
-	{
-		sleep(1);
-	}
+    // Infinite loop to keep the program running
+    while (1) {
+        sleep(1);
+    }
 
-	return 0;
+    return 0;
 }
